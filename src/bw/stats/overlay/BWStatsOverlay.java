@@ -5,6 +5,7 @@
 package bw.stats.overlay;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  *
@@ -18,9 +19,20 @@ public class BWStatsOverlay {
      */
     public static void main(String[] args) throws IOException {
         // TODO code application logic here
-        System.out.println("test");
-        //GetPlayerData.GetPlayerData("redxazzu");
-        GetPlayers.GetPlayers();
+        List<String> players = GetPlayers.GetPlayers();
+
+        if(players !=null){
+            for (String name : players) {
+                GetPlayerData.GetPlayerData(name);
+            }
+        }
+
+
+
+
+        //System.out.println(players.get(2));
+        //GetPlayerData.GetPlayerData(players.get(2));
+        //GetPlayerData.GetPlayerData("WildPlaysGame");
     }
     
 }
