@@ -1,9 +1,8 @@
 package bw.stats.overlay;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -39,13 +38,27 @@ public class GetPlayers {
         }
 
         List<String> nameList = null;
-        try (BufferedReader br = new BufferedReader(new FileReader(latestLogFile))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (line.contains("ONLINE:")) {
-                    nameList = processOnlineLine(line);
-                    break; // Assuming we only need the first occurrence
+        try (RandomAccessFile raf = new RandomAccessFile(latestLogFile, "r")) {
+            long length = raf.length();
+            long pos = length - 1;
+            StringBuilder sb = new StringBuilder();
+
+            while (pos >= 0) {
+                raf.seek(pos);
+                char c = (char) raf.readByte();
+                if (c == '\n' || pos == 0) {
+                    if (pos != length - 1) {
+                        String line = sb.reverse().toString();
+                        if (line.contains("ONLINE:")) {
+                            nameList = processOnlineLine(line);
+                            break;
+                        }
+                        sb = new StringBuilder();
+                    }
+                } else {
+                    sb.append(c);
                 }
+                pos--;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -74,5 +87,14 @@ public class GetPlayers {
                 .map(String::trim)
                 .map(s -> s.replace("\n", ""))
                 .collect(Collectors.toList());
+    }
+
+    public static void main(String[] args) {
+        List<String> players = GetPlayers();
+        if (players != null) {
+            players.forEach(System.out::println);
+        } else {
+            System.out.println("No players found.");
+        }
     }
 }
